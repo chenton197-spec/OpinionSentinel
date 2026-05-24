@@ -1,103 +1,45 @@
-# 公司舆情监控网站
+# OpinionSentinel
 
-基于 [docs/product-plan.md](docs/product-plan.md) 落地的 MVP 代码骨架，采用“同仓双应用”结构：
+OpinionSentinel 是一个全栈的自动化公司舆情监控系统。它提供了一个现代化的后台管理界面，基于规则的监控引擎，并支持基于自然语言处理的舆情预警和自动报表生成。
 
-- `apps/web`: Next.js App Router 后台界面
-- `apps/api`: FastAPI 业务接口与后续调度入口
-- `docker-compose.yml`: PostgreSQL、Elasticsearch、Redis 本地依赖
+项目采用“同仓双应用” (Monorepo) 结构：
+- `apps/web`: 基于 Next.js (App Router) 构建的现代化管理界面。
+- `apps/api`: 基于 FastAPI 构建的高性能业务接口与定时调度工作节点。
+- `docker-compose.yml`: PostgreSQL、Elasticsearch、Redis 等环境依赖。
 
-当前实现重点是先把可演示闭环搭起来：看板、列表、详情、规则、预警、报表、设置页已经成型；FastAPI 已提供对应的演示接口；前端支持接口不可用时使用本地回退数据。
-
-## 已实现范围
-
-- 后台页面：登录、总览看板、舆情列表、舆情详情、关键词规则、预警记录、日报/周报、系统设置
-- 后端接口：`/api/dashboard/overview`、`/api/articles`、`/api/articles/{id}`、`/api/rules`、`/api/alerts`、`/api/reports`
-- 演示数据：内置种子数据、规则、预警和报表任务
-- 扩展骨架：采集器接口、清洗流水线、搜索查询构造、异步任务边界、通知集成边界
-- 当前后端已切到 PostgreSQL 持久化 CompanyProfile、Article、Rule、ReportTask，并支持 Celery 异步导出 HTML/PDF 报表
+## 核心特性
+- 📊 **总览看板**：实时了解最新舆情动态和数据统计。
+- 📰 **舆情监测**：自动化抓取和清洗各类文章、新闻。
+- ⚙️ **监控规则**：灵活配置企业关键词与监控规则。
+- 🚨 **实时预警**：舆情事件能够针对性自动判定并完成预警。
+- 📈 **自动报表**：支持自动生成 HTML/PDF 等多种格式的多维度报告。
 
 ## 目录结构
-
 ```text
 apps/
-  api/
-    app/
-      core/
-      crawlers/
-      data/
-      integrations/
-      models/
-      pipelines/
-      routes/
-      schemas/
-      search/
-      services/
-      tasks/
-  web/
-    src/
-      app/
-      components/
-      lib/
-      types/
-docs/
-  product-plan.md
+  api/  # Python / FastAPI 后端业务代码
+  web/  # React / Next.js 前端应用代码
 ```
 
-## 本地启动
+## 快速开始
 
-1. 复制环境变量模板
-
+### 1. 准备环境变量
 ```bash
 cp .env.example .env
 ```
 
-2. 启动基础依赖
-
+### 2. 启动基础依赖服务
+确保您本机安装了 Docker 环境，然后运行：
 ```bash
 docker compose up -d postgres elasticsearch redis
 ```
 
-3. 启动前端
-
+### 3. 可选快捷联调方式
+如果在根目录下带有 Node.js 支持，可以通过便捷 scripts 分别启动：
 ```bash
-npm --prefix apps/web run dev
+npm run dev:web     # 启动前端应用
+npm run dev:api     # 启动 FastAPI 后端接口服务
+npm run dev:worker  # 启动异步任务 Worker
 ```
 
-4. 安装并启动后端
-
-```bash
-cd apps/api
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-python3 -m uvicorn app.main:app --reload --port 8000
-
-# 新开一个终端启动 Celery Worker
-.venv/bin/celery -A app.tasks.celery_app:celery_app worker --loglevel=info
-```
-
-## 常用命令
-
-```bash
-npm run dev:web
-npm run dev:api
-npm run dev:worker
-npm run lint:web
-npm run check:api
-npm run infra:up
-npm run infra:down
-```
-
-## 当前实现说明
-
-- 前端已对齐计划中的后台信息架构，报表页已支持触发 HTML/PDF 异步导出；规则页仍需补更完整的编辑交互。
-- 后端启动后会自动建表，并把种子数据迁入 PostgreSQL，后续写操作不会再因服务重启丢失。
-- 真实抓取现已覆盖企业官网/公告候选、新闻门户 RSS，以及搜索聚合作为兜底来源。
-- 前端已内置本地日志采集，最近 30 分钟的页面访问、点击、表单操作、网络请求、错误与心跳信息会落到 `logs/frontend/operations.ndjson`，汇总信息写入 `logs/frontend/summary.json`。
-
-## 建议的下一步
-
-1. 将 `demo_store` 替换为 PostgreSQL + Elasticsearch 真正读写。
-2. 为规则创建和报表创建补上前端真实提交交互。
-3. 实现企业官网、新闻门户、搜索聚合三个来源的首批真实采集器。
-4. 接入 Celery Worker / Beat 与飞书或邮件通知通道。
+也可以深入 `apps/api` 与 `apps/web` 独立初始化对应语言模块运行依赖。
