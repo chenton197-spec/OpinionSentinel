@@ -1,0 +1,1 @@
+"""Search abstractions for the future Elasticsearch layer."""

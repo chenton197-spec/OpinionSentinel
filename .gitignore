@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.DS_Store
+dist/
+coverage/
+apps/api/.venv/
+apps/api/__pycache__/
+apps/api/**/*.pyc
+reports/
+logs/
+apps/web/public/exports/*.html
+!apps/web/public/exports/daily-2026-05-23.html
